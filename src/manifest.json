@@ -1,0 +1,10 @@
+{
+    "manifest_version": 3,
+    "name": "Voice Chatbot",
+    "version": "1.0",
+    "description": "A chatbot that uses voice interaction via OpenAI API.",
+    "action": {
+      "default_popup": "popup.html"
+    }
+}
+  
