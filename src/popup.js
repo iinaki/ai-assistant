@@ -1,113 +1,81 @@
-// import { GoogleGenerativeAI } from "@google/generative-ai";
+let scrapedData = {};
 
-// const API_KEY = 'AIzaSyAxz65u-JqMZ8vLjEUov5HOrIov0It1SYI';
-// const genAI = new GoogleGenerativeAI(process.env.API_KEY); 
-// const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-// document.addEventListener('DOMContentLoaded', function() {
-//     const chatForm = document.getElementById('chat-form');
-//     const userInput = document.getElementById('user-input');
-//     const chatOutput = document.getElementById('chat-output');
-
-//     // Check if elements exist
-//     if (!chatForm) console.error("Element with id 'chat-form' not found");
-//     if (!userInput) console.error("Element with id 'user-input' not found");
-//     if (!chatOutput) console.error("Element with id 'chat-output' not found");
-
-//     // Only add event listener if chatForm exists
-//     if (chatForm) {
-//         chatForm.addEventListener('submit', async function(e) {
-//             e.preventDefault();
-//             const userMessage = userInput.value.trim();
-//             if (userMessage) {
-//                 appendMessage('User', userMessage);
-//                 const result = await model.generateContent(userMessage);
-//                 let response = result.response.text();
-//                 console.log(response);
-//                 appendMessage('Bot', response.trim());
-//                 userInput.value = '';
-//             }
-//         });
-//     } else {
-//         console.error("Chat form not found, cannot add submit event listener");
-//     }
-
-//     function appendMessage(sender, message) {
-//         chatOutput.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
-//         chatOutput.scrollTop = chatOutput.scrollHeight;
-//     }
-
-//     // function sendMessageToAPI(message) {
-//     //     const API_URL = 'https://esm.run/@google/generative-ai';
-//     //     const API_KEY = 'AIzaSyAxz65u-JqMZ8vLjEUov5HOrIov0It1SYI';
-
-//     //     const requestOptions = {
-//     //         method: 'POST',
-//     //         headers: {
-//     //             'Content-Type': 'application/json',
-//     //             'Authorization': `Bearer ${API_KEY}`
-//     //         },
-//     //         body: JSON.stringify({
-//     //             model: "gemini-1.5-flash",
-//     //             messages: [{role: "user", content: message}],
-//     //             max_tokens: 150
-//     //         })
-//     //     };
-
-//     //     fetch(API_URL, requestOptions)
-//     //         .then(response => {
-//     //             console.log('Response status:', response.status);
-//     //             console.log('Response headers:', response.headers);
-//     //             return response.json().then(data => ({ status: response.status, body: data }));
-//     //         })
-//     //         .then(({ status, body }) => {
-//     //             console.log('API Response:', body);
-                
-//     //             if (status !== 200) {
-//     //                 throw new Error(`API returned status ${status}: ${JSON.stringify(body)}`);
-//     //             }
-                
-//     //             if (body.choices && body.choices.length > 0 && body.choices[0].message) {
-//     //                 appendMessage('Bot', body.choices[0].message.content.trim());
-//     //             } else {
-//     //                 console.error('Unexpected API response structure:', body);
-//     //                 appendMessage('Bot', 'Sorry, I couldn\'t generate a response.');
-//     //             }
-//     //         })
-//     //         .catch(error => {
-//     //             console.error('Error details:', error);
-//     //             appendMessage('Bot', `Sorry, an error occurred: ${error.message}`);
-//     //         });
-//     // }
-// });
-
-document.addEventListener('DOMContentLoaded', function() {
-    const chatForm = document.getElementById('chat-form');
-    const userInput = document.getElementById('user-input');
-    const chatOutput = document.getElementById('chat-output');
-
-    if (chatForm) {
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const userMessage = userInput.value.trim();
-            if (userMessage) {
-                appendMessage('User', userMessage);
-
-                // Send message to background script to fetch AI response
-                chrome.runtime.sendMessage(
-                    { action: "fetchAIResponse", userMessage: userMessage },
-                    function(response) {
-                        appendMessage('Bot', response.responseText.trim());
-                    }
-                );
-
-                userInput.value = '';
-            }
-        });
+// Function to request scraped data from background.js
+function requestScrapedData() {
+  chrome.runtime.sendMessage({ type: 'REQUEST_SCRAPED_DATA' }, (response) => {
+    if (response && response.data) {
+      scrapedData = response.data;
     }
+  });
+}
 
-    function appendMessage(sender, message) {
-        chatOutput.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
-        chatOutput.scrollTop = chatOutput.scrollHeight;
+function addMessageToChat(sender, message) {
+  const chatOutput = document.getElementById('chat-output');
+  chatOutput.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
+  chatOutput.scrollTop = chatOutput.scrollHeight;
+
+  // Save the updated chat history in chrome.storage
+  saveChatHistory();
+}
+
+async function sendMessage(message) {
+  // Fetch or create a new session with Google's AI API
+
+  const session = await ai.languageModel.create({
+    systemPrompt: "You are a friendly, helpful assistant specialized in helping disabled people navigate the web. In every prompt you will receive a user message and the information about the page the user is currently on. Your goal is to provide useful information and help the user navigate the page. This is the previus chat history: " + document.getElementById('chat-output').innerHTML,
+  });
+  
+  addMessageToChat('You', message);
+
+  console.log('Scraped data:', scrapedData);
+
+  try {
+    // Include the scraped data in the AI prompt
+    const prompt = `
+      User message: ${message}.
+      Page URL: ${scrapedData.url}.
+      Page title: ${scrapedData.title}.
+      Page description: ${scrapedData.description}.
+      Headings: ${scrapedData.headings}.
+      Paragraphs: ${scrapedData.paragraphs}.
+    `;
+
+    const response = await session.prompt(prompt);
+
+    addMessageToChat('AI', response);
+  } catch (error) {
+    addMessageToChat('Error', error.message);
+  }
+}
+
+function saveChatHistory() {
+  const chatOutput = document.getElementById('chat-output').innerHTML;
+  chrome.storage.local.set({ chatHistory: chatOutput });
+}
+
+function loadChatHistory() {
+  chrome.storage.local.get('chatHistory', (data) => {
+    if (data.chatHistory) {
+      document.getElementById('chat-output').innerHTML = data.chatHistory;
     }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  requestScrapedData();
+
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('user-input');
+
+  // Load the chat history when the popup opens
+  loadChatHistory();
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (message) {
+      sendMessage(message);
+      input.value = '';
+    }
+  });
 });

@@ -1,15 +1,23 @@
 {
-  "manifest_version": 3,
-  "name": "Chat with Google AI",
-  "version": "1.0",
-  "permissions": ["background", "storage"],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "action": {
-    "default_popup": "popup.html"
-  },
-  "host_permissions": [
-    "https://generativelanguage.googleapis.com/"
-  ]
+    "manifest_version": 3,
+    "name": "My AI Extension",
+    "version": "1.0",
+    "description": "A simple AI-powered Chrome extension",
+    "action": {
+      "default_popup": "popup.html"
+    },
+    "permissions": [
+      "storage",
+      "activeTab",  
+      "scripting" 
+    ],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"], 
+        "js": ["content.js"]       
+      }
+    ]
 }
