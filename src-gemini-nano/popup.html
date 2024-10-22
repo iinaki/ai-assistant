@@ -1,0 +1,24 @@
+<!-- The basic UI (e.g., a button for starting the microphone). -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My AI Extension</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div id="app">
+        <h1>My AI Extension</h1>
+        <div class="chat-container">
+            <div id="chat-output" class="chat-output"></div>
+            <form id="chat-form" class="chat-input">
+                <input type="text" id="user-input" placeholder="Type your message...">
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <script src="popup.js" type="module"></script>
+</body>
+</html>
