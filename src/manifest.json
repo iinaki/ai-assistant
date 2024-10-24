@@ -1,12 +1,13 @@
 {
     "manifest_version": 3,
-    "name": "My AI Extension",
+    "name": "Assistant",
     "version": "1.0",
-    "description": "A simple AI-powered Chrome extension",
+    "description": "A simple AI-powered Chrome extension to help the disabled",
     "action": {
       "default_popup": "popup.html"
     },
     "permissions": [
+      "tabs",
       "storage",
       "activeTab",  
       "scripting" 
