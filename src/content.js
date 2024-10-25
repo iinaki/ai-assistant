@@ -7,9 +7,9 @@ function scrapePage() {
     title: document.title,
     description: document.querySelector('meta[name="description"]')?.getAttribute('content') || '',
     keywords: document.querySelector('meta[name="keywords"]')?.getAttribute('content') || '',
-    headings: Array.from(document.querySelectorAll('h1, h2, h3')).map(heading => heading.innerText).limit(3),
-    paragraphs: Array.from(document.querySelectorAll('p')).map(p => p.innerText).limit(3),
-    links: Array.from(document.querySelectorAll('a')).map(a => a.href).limit(3),
+    headings: Array.from(document.querySelectorAll('h1, h2, h3')).map(heading => heading.innerText),
+    paragraphs: Array.from(document.querySelectorAll('p')).map(p => p.innerText),
+    links: Array.from(document.querySelectorAll('a')).map(a => a.href)
   };
   
   console.log('in content: Scraped page data:', pageData);
@@ -19,5 +19,4 @@ function scrapePage() {
 }
   
 scrapePage();
-  
   

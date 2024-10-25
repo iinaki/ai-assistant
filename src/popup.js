@@ -51,11 +51,14 @@ async function sendMessage(message) {
     Paragraphs: ${scrapedData.paragraphs}.
   `;
 
+  console.log('Prompt:', prompt);
+
   try {
     const response = await session.prompt(prompt);
     addMessageToChat('AI', response);
   } catch (error) {
     addMessageToChat('Error', error.message);
+    console.log('Error:', error);
   }
 }
 
