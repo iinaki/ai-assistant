@@ -12,7 +12,7 @@
     - Open DevTools and send (await ai.languageModel.capabilities()).available; in the console. 
     - If this returns “readily”, then you are all set. 
     - If this fails, continue as follows:
-        - 📣🆕 Force Chrome to recognize that you want to use this API. To do so, open DevTools and send  await ai.languageModel.create(); in the console. This will likely fail but it’s intended.
+        - 📣 Force Chrome to recognize that you want to use this API. To do so, open DevTools and send  await ai.languageModel.create(); in the console. This will likely fail but it’s intended.
         - Relaunch Chrome. 
         - Open a new tab in Chrome, go to chrome://components 
         - Confirm that Gemini Nano is either available or is being downloaded

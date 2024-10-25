@@ -1,6 +1,7 @@
-const initialPrompt = "You are a friendly, helpful assistant specialized in helping disabled people navigate the web. In every prompt you will receive a user message and the information about the page the user is currently on. Your goal is to provide useful information and help the user navigate the page.";
+const initialPrompt = "You are a friendly, helpful assistant specialized in helping disabled people navigate the web. In every prompt you will receive a user message and the information about the page the user is currently on, this info will consist of the url of the site, the site's title and a list of links to help you gide him through the site. Your goal is to provide useful information and help the user navigate the page.";
 
 let session = null;
+let previousScrapedData = null;
 
 // request scraped data from background.js
 function requestScrapedData() {
@@ -14,7 +15,6 @@ function requestScrapedData() {
   });
 }
 
-// Function to initialize the language model session if not already created
 async function initializeLanguageModel() {
   if (!session) {
     session = await ai.languageModel.create({
@@ -33,23 +33,44 @@ function addMessageToChat(sender, message) {
 }
 
 async function sendMessage(message) {
-  await initializeLanguageModel();
+  try {
+    await initializeLanguageModel();
+  } catch (error) {
+    console.log('Error:', error);
+    addMessageToChat('Error', error.message);
+    return;
+  }
   
   addMessageToChat('You', message);
 
-  const scrapedData = await requestScrapedData();
+  let scrapedData = null;
+   
+  try {
+    scrapedData = await requestScrapedData();
+  } catch (error) {
+    console.log('Error:', error);
+    addMessageToChat('Error', error.message);
+    return;
+  }
 
   console.log('Scraped data: ', scrapedData);
   console.log('Scraped data links: ', scrapedData.links);
 
-  const prompt = `
-    User message: ${message}.
-    Page URL: ${scrapedData.url}.
-    Page title: ${scrapedData.title}.
-    Page description: ${scrapedData.description}.
-    Headings: ${scrapedData.headings}.
-    Paragraphs: ${scrapedData.paragraphs}.
-  `;
+  let prompt = '';
+
+  if (scrapedData == previousScrapedData) {
+    prompt = `
+      User message: ${message}.
+    `;
+  } else {
+    prompt = `
+      User message: ${message}.
+      Page URL: ${scrapedData.url}.
+      Page title: ${scrapedData.title}.
+      Page links: ${scrapedData.links.join(', ')}.
+    `;
+    previousScrapedData = scrapedData;
+  }
 
   console.log('Prompt:', prompt);
 
