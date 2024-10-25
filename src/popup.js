@@ -1,5 +1,7 @@
 const initialPrompt = "You are a friendly, helpful assistant specialized in helping disabled people navigate the web. In every prompt you will receive a user message and the information about the page the user is currently on. Your goal is to provide useful information and help the user navigate the page.";
 
+let session = null;
+
 // request scraped data from background.js
 function requestScrapedData() {
   return new Promise((resolve) => {
@@ -12,6 +14,16 @@ function requestScrapedData() {
   });
 }
 
+// Function to initialize the language model session if not already created
+async function initializeLanguageModel() {
+  if (!session) {
+    session = await ai.languageModel.create({
+      systemPrompt: initialPrompt,
+    });
+    console.log("Language model session created");
+  }
+}
+
 function addMessageToChat(sender, message) {
   const chatOutput = document.getElementById('chat-output');
   chatOutput.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
@@ -21,9 +33,7 @@ function addMessageToChat(sender, message) {
 }
 
 async function sendMessage(message) {
-  const session = await ai.languageModel.create({
-    systemPrompt: initialPrompt,
-  });
+  await initializeLanguageModel();
   
   addMessageToChat('You', message);
 
