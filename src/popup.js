@@ -1,7 +1,7 @@
 const initialPrompt = "You are a friendly, helpful assistant specialized in helping disabled people navigate the web. In every prompt you will receive a user message and the information about the page the user is currently on. Your goal is to provide useful information and help the user navigate the page.";
 let session = null;
 
-// request scraped data from background.js
+// request scraped data from background.js (url, name, etc)
 function requestScrapedData() {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: 'REQUEST_SCRAPED_DATA' }, (response) => {
@@ -13,6 +13,10 @@ function requestScrapedData() {
   });
 }
 
+
+/*
+  Adds message that the user or ia sends to the chat window
+*/
 function addMessageToChat(sender, message) {
   const chatOutput = document.getElementById('chat-output');
   chatOutput.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
@@ -21,7 +25,9 @@ function addMessageToChat(sender, message) {
   saveChatHistory();
 }
 
-
+/* 
+  Creates new session if it doesn't exist, otherwise returns the existing session.
+*/
 async function getOrCreateSession(tabId, initialPrompt) {
   const { sessions: storedSessions = {} } = await chrome.storage.local.get("sessions");
 
@@ -41,7 +47,9 @@ async function getOrCreateSession(tabId, initialPrompt) {
 }
 
 
-
+/* 
+  Receives a message from the user and sends it to the AI model for a response.
+*/
 async function sendMessage(message) {
   try {
     addMessageToChat('You', message);
@@ -51,6 +59,7 @@ async function sendMessage(message) {
     console.log('Scraped data: ', scrapedData);
     console.log('Scraped data links: ', scrapedData.links);
 
+    // prompt that the ia receives
     const prompt = `
       User message: ${message}.
       Page URL: ${scrapedData.url}.
@@ -84,11 +93,17 @@ async function sendMessage(message) {
   }
 }
 
+/*
+  Saves chat history to storage
+*/
 function saveChatHistory() {
   const chatOutput = document.getElementById('chat-output').innerHTML;
   chrome.storage.local.set({ chatHistory: chatOutput });
 }
 
+/*
+  Loads past chat history from storage
+*/
 function loadChatHistory() {
   chrome.storage.local.get('chatHistory', (data) => {
     if (data.chatHistory) {
@@ -97,6 +112,10 @@ function loadChatHistory() {
   });
 }
 
+
+/*
+Waits for the page to load
+*/
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('chat-form');
   const input = document.getElementById('user-input');
