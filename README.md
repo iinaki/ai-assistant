@@ -23,6 +23,14 @@
 
 This is taken out from the early preview program of the [Prompt API](https://docs.google.com/document/d/1VG8HIyz361zGduWgNG7R_R8Xkv0OOJ8b5C9QKeCjU0c/edit?tab=t.0).
 
+### Key commands to test that the model is available
+- Chrome links:
+    - `chrome://flags/#optimization-guide-on-device-model` -> Enabled BypassPerfRequirement
+    - `chrome://flags/#prompt-api-for-gemini-nano` -> Enabled
+    - `chrome://components` -> Optimization Guide On Device Model
+- `(await ai.languageModel.capabilities()).available;`
+- `await ai.languageModel.create();`
+
 
 ## To run the assistant
-    Load extension in extensions window of Google Chrome (unstable). In any window click extensions and open the loaded extension. A window will pop up and you now can communicate with the IA
+    Load extension in extensions window of Google Chrome (unstable). In any window click extensions and open the loaded extension. A window will pop up and you now can communicate with the IA.

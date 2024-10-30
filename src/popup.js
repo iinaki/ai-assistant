@@ -1,4 +1,12 @@
 const initialPrompt = "You are a friendly, helpful assistant specialized in helping disabled people navigate the web. In every prompt you will receive a user message and the information about the page the user is currently on. Your goal is to provide useful information and help the user navigate the page.";
+
+// the possible roles are 'system', 'user', and 'assistant'
+let log = {
+  initialPrompts: [
+    { role: "system", content: initialPrompt },
+  ],
+};
+
 let session = null;
 
 // request scraped data from background.js (url, name, etc)
@@ -12,7 +20,6 @@ function requestScrapedData() {
     });
   });
 }
-
 
 /*
   Adds message that the user or ia sends to the chat window
@@ -28,22 +35,17 @@ function addMessageToChat(sender, message) {
 /* 
   Creates new session if it doesn't exist, otherwise returns the existing session.
 */
+
 async function getOrCreateSession(tabId, initialPrompt) {
-  const { sessions: storedSessions = {} } = await chrome.storage.local.get("sessions");
+  const { sessions = {} } = await chrome.storage.local.get("sessions");
 
-  console.log('Stored sessions:', storedSessions);
+  if (sessions[tabId]) {
+    log = sessions[tabId].log;
+  } 
+  let newSession = await ai.languageModel.create(log);
 
-  if (!storedSessions[tabId]) {
-    const newSession = await ai.languageModel.create({
-      systemPrompt: initialPrompt,
-    });
-    storedSessions[tabId] = newSession;
-
-    await chrome.storage.local.set({ sessions: storedSessions });
-  }
-
-  console.log('Session returned:', storedSessions[tabId]);
-  return storedSessions[tabId];
+  console.log('Session returned:', newSession);
+  return newSession;
 }
 
 
@@ -87,6 +89,8 @@ async function sendMessage(message) {
     
     const response = await session.prompt(prompt);
     addMessageToChat('AI', response);
+    log.initialPrompts.push({ role: 'user', content: message });
+    log.initialPrompts.push({ role: 'assistant', content: response });
   } catch (error) {
     addMessageToChat('Error', error.message);
     console.log('Error:', error);
@@ -99,6 +103,7 @@ async function sendMessage(message) {
 function saveChatHistory() {
   const chatOutput = document.getElementById('chat-output').innerHTML;
   chrome.storage.local.set({ chatHistory: chatOutput });
+  chrome.storage.local.set({ log: log });
 }
 
 /*
