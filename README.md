@@ -33,4 +33,4 @@ This is taken out from the early preview program of the [Prompt API](https://doc
 
 
 ## To run the assistant
-    Load extension in extensions window of Google Chrome (unstable). In any window click extensions and open the loaded extension. A window will pop up and you now can communicate with the IA.
+Load extension in extensions window of Google Chrome (unstable). In any window click extensions and open the loaded extension. A window will pop up and you now can communicate with the IA.
